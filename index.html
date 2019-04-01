@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bank Branch Search</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+    <style type="text/css">
+        select{height: 24px;background:aliceblue;border-radius: 3px;}
+        input{height: 18px;width: 200px;margin-left: 30px;}
+        table th, table td{border:1px solid #ddd}
+        thead{font-weight:bold;background:aliceblue}
+    </style>
+</head>
+<body>
+
+    <div ng-app="bank" ng-controller="branchCtrl">
+        <h3>Bank Branches</h3>
+        <div style="margin-bottom:15px">
+            <select ng-options="c for c in cities" ng-model="selectedCity" ng-change="getBranches()"></select>
+            <input name="search" ng-model="searchText" placeholder="Search" ng-disabled="bankList.length==0" ng-change="highlight()">
+        </div>
+        <div ng-if="!loading" ng-bind="(bankList | filter : {$:searchText}).length + ' bank' + ((bankList | filter : {$:searchText}).length==1 ? '' : 's') +' found.'"></div>
+        <table ng-if="bankList.length>0">
+          <thead>
+            <tr width="100%">
+              <th width="5%">Bank ID</th>
+              <th width="15%">Bank Name</th>
+              <th width="10%">Branch</th>
+              <th width="10%">IFSC Code</th>
+              <th width="30%">Address</th>
+              <th width="10%">City</th>
+              <th width="10%">District</th>
+              <th width="10%">State</th>
+            </tr>
+          </thead>
+          <tbody>
+              <tr ng-repeat="b in bankList | filter : {$:searchText}">
+                  <td ng-bind="b.bank_id"></td>
+                  <td ng-bind="b.bank_name"></td>
+                  <td ng-bind="b.branch"></td>
+                  <td ng-bind="b.ifsc"></td>
+                  <td ng-bind="b.address"></td>
+                  <td ng-bind="b.city"></td>
+                  <td ng-bind="b.district"></td>
+                  <td ng-bind="b.state"></td>
+              </tr>
+          </tbody>
+        </table>
+        <div ng-if="bankList.length==0" style="text-align:center;font-size:16px">Loading branches...</div>
+
+    </div>
+
+    <script>
+        var app = angular.module('bank', []);
+        app.controller('branchCtrl', function($scope, $http) {
+            $scope.cities = ['BANGALORE','CHENNAI','HYDERABAD','MUMBAI','PUNE'];
+            $scope.selectedCity = 'BANGALORE';
+            $scope.getBranches = function()
+            {
+                $scope.loading=true;
+                $scope.bankList = [];
+                $scope.searchText = '';
+                $http.get("https://vast-shore-74260.herokuapp.com/banks?city=" + $scope.selectedCity)
+                .then(function(response) {
+                    if(response.status==200)
+                        $scope.bankList = response.data;
+                    $scope.loading=false;
+                });
+            }
+            $scope.getBranches();
+            
+        });
+    </script>
+
+</body>
+</html>
